@@ -7,7 +7,7 @@ import {
 import { CreateQuizDto, UpdateQuizDto } from './dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Quiz } from './schema/quiz.model';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { User } from 'src/user/schema/user.model';
 import { sendResponse } from 'src/utils/send-response';
 
@@ -27,9 +27,10 @@ export class QuizService {
       const result = await quiz.save();
 
       // Find logged in user and add quiz to their created quizzes
-      const user = await this.userModel.findById(userId);
-      user.quizzes.push(quiz);
-      await user.save();
+      await this.userModel.findByIdAndUpdate(
+        { _id: userId },
+        { $push: { quizzes: quiz._id } },
+      );
 
       return sendResponse(
         HttpStatus.CREATED,
