@@ -35,7 +35,11 @@ export class AuthService {
 
       const token = await this.signToken(createdUser.id, createdUser.email);
 
-      return { status: HttpStatus.CREATED, data: token };
+      return {
+        status: HttpStatus.CREATED,
+        message: 'User created successfully.',
+        data: token,
+      };
     } catch (error) {
       // Duplicate key error
       if (error.code === 11000) {
@@ -60,7 +64,11 @@ export class AuthService {
 
       const token = await this.signToken(user.id, user.email);
 
-      return { status: HttpStatus.OK, data: token };
+      return {
+        status: HttpStatus.OK,
+        message: 'Login Successful.',
+        data: token,
+      };
     } catch (error) {
       throw error;
     }
@@ -73,7 +81,7 @@ export class AuthService {
 
     // Create jwt token
     const token = await this.jwt.signAsync(payload, {
-      expiresIn: '1h',
+      expiresIn: process.env.JWT_EXPIRE,
       secret,
     });
 
