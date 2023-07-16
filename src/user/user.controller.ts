@@ -6,8 +6,8 @@ import { JwtGuard } from 'src/auth/guard';
 @Controller('user')
 export class UserController {
   // test
-  @Get('me')
-  async getUser(@GetUser() user) {
-    return user;
-  }
+  // @Get('me')
+  // async getUser(@GetUser() user) {
+  //   return user;
+  // }
 }
