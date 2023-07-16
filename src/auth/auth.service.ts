@@ -10,6 +10,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthDto } from './dto';
+import { sendResponse } from 'src/utils/send-response';
 
 @Injectable()
 export class AuthService {
@@ -35,11 +36,11 @@ export class AuthService {
 
       const token = await this.signToken(createdUser.id, createdUser.email);
 
-      return {
-        status: HttpStatus.CREATED,
-        message: 'User created successfully.',
-        data: token,
-      };
+      return sendResponse(
+        HttpStatus.CREATED,
+        'User created successfully.',
+        token,
+      );
     } catch (error) {
       // Duplicate key error
       if (error.code === 11000) {
@@ -64,11 +65,7 @@ export class AuthService {
 
       const token = await this.signToken(user.id, user.email);
 
-      return {
-        status: HttpStatus.OK,
-        message: 'Login Successful.',
-        data: token,
-      };
+      return sendResponse(HttpStatus.OK, 'Login Successful.', token);
     } catch (error) {
       throw error;
     }

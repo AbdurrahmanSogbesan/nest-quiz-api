@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Quiz } from './schema/quiz.model';
 import { Model, Types } from 'mongoose';
 import { User } from 'src/user/schema/user.model';
+import { sendResponse } from 'src/utils/send-response';
 
 @Injectable()
 export class QuizService {
@@ -30,11 +31,11 @@ export class QuizService {
       user.quizzes.push(quiz);
       await user.save();
 
-      return {
-        status: HttpStatus.CREATED,
-        message: 'Quiz created successfully.',
-        data: result,
-      };
+      return sendResponse(
+        HttpStatus.CREATED,
+        'Quiz created successfully.',
+        result,
+      );
     } catch (error) {
       throw error;
     }
@@ -44,11 +45,11 @@ export class QuizService {
     try {
       const quizzes = await this.quizModel.find().exec();
 
-      return {
-        status: HttpStatus.OK,
-        message: 'Quizzes fetched successfully.',
-        data: quizzes,
-      };
+      return sendResponse(
+        HttpStatus.OK,
+        'Quizzes fetched successfully.',
+        quizzes,
+      );
     } catch (error) {
       throw error;
     }
@@ -58,15 +59,16 @@ export class QuizService {
     try {
       const quiz = await this.quizModel
         .findById(quizId)
-        .populate('createdBy', '-password');
+        // Excluding password and quizzes(for now)
+        .populate('createdBy', '-password -quizzes');
 
       if (!quiz) throw new NotFoundException('Quiz was not found');
 
-      return {
-        status: HttpStatus.OK,
-        message: 'Quiz details fetched successfully.',
-        data: quiz,
-      };
+      return sendResponse(
+        HttpStatus.OK,
+        'Quiz details fetched successfully.',
+        quiz,
+      );
     } catch (error) {
       throw error;
     }
@@ -90,11 +92,7 @@ export class QuizService {
 
       const result = await quiz.save();
 
-      return {
-        status: HttpStatus.OK,
-        message: 'Quiz updated successfully.',
-        data: result,
-      };
+      return sendResponse(HttpStatus.OK, 'Quiz updated successfully.', result);
     } catch (error) {
       throw error;
     }
@@ -120,7 +118,7 @@ export class QuizService {
         { $pull: { quizzes: quizId } },
       );
 
-      return { status: HttpStatus.OK, message: 'Quiz deleted successfully.' };
+      return sendResponse(HttpStatus.OK, 'Quiz deleted successfully.');
     } catch (error) {
       throw error;
     }
