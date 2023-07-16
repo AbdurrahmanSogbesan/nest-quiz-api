@@ -9,11 +9,14 @@ export class Quiz {
   @Prop({ required: true })
   name: string;
 
-  @Prop()
+  @Prop({ required: true })
   description: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   createdBy: User;
+
+  @Prop({ enum: ['open', 'closed'], default: 'open' })
+  status: 'open' | 'closed';
 
   @Prop({ default: now() })
   createdAt: Date;
