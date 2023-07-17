@@ -1,16 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { QuizService } from './quiz.service';
 import { QuizController } from './quiz.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Quiz, QuizSchema } from './schema/quiz.model';
 import { UserModule } from 'src/user/user.module';
+import { QuestionModule } from 'src/question/question.module';
 
+const QuizFeature = MongooseModule.forFeature([
+  { name: Quiz.name, schema: QuizSchema },
+]);
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Quiz.name, schema: QuizSchema }]),
-    UserModule,
-  ],
+  imports: [QuizFeature, UserModule, forwardRef(() => QuestionModule)],
   controllers: [QuizController],
   providers: [QuizService],
+  exports: [QuizFeature],
 })
 export class QuizModule {}
