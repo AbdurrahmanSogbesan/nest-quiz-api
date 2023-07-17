@@ -8,15 +8,17 @@ import {
 import { CreateQuizDto, UpdateQuizDto } from './dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Quiz } from './schema/quiz.model';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User } from 'src/user/schema/user.model';
 import { sendResponse } from 'src/utils/send-response';
+import { Question } from 'src/question/schema/question.model';
 
 @Injectable()
 export class QuizService {
   constructor(
     @InjectModel(Quiz.name) private quizModel: Model<Quiz>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Question.name) private questionModel: Model<Question>,
   ) {}
 
   async createQuiz(userId: string, dto: CreateQuizDto) {
@@ -111,14 +113,18 @@ export class QuizService {
       if (quiz.createdBy.toString() !== userId)
         throw new ForbiddenException('Not authorized.');
 
+      // Remove associated questions
+      await this.questionModel.deleteMany({
+        quiz: Types.ObjectId.createFromHexString(quizId),
+      });
+
       // Remove quiz from db
       await this.quizModel.findByIdAndRemove(quizId);
 
       // Find creator and update quizzes array
-      await this.userModel.findByIdAndUpdate(
-        { _id: userId },
-        { $pull: { quizzes: quizId } },
-      );
+      await this.userModel.findByIdAndUpdate(userId, {
+        $pull: { quizzes: quizId },
+      });
 
       return sendResponse(HttpStatus.OK, 'Quiz deleted successfully.');
     } catch (error) {
