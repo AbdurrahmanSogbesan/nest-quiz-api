@@ -49,4 +49,28 @@ export class QuizController {
   ) {
     return this.quizService.deleteQuiz(quizId, userId);
   }
+
+  @Post(':quiz_id/close')
+  async closeQuiz(
+    @Param('quiz_id') quizId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return this.quizService.closeQuiz(quizId, userId);
+  }
+
+  @Post(':quiz_id/attempt')
+  async attemptQuiz(
+    @Param('quiz_id') quizId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return this.quizService.attemptQuiz(quizId, userId);
+  }
+
+  @Get(':quiz_id/participants')
+  async getQuizParticipants(
+    @Param('quiz_id') quizId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return this.quizService.getQuizParticipants(quizId, userId);
+  }
 }

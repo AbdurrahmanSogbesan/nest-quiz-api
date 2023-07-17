@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   HttpStatus,
   Injectable,
@@ -123,5 +124,39 @@ export class QuizService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async closeQuiz(quizId: string, userId: string) {
+    try {
+      // Find quiz
+      const quiz = await this.quizModel.findById(quizId);
+
+      if (!quiz) throw new NotFoundException('Quiz not found');
+
+      if (quiz.status === 'closed')
+        throw new BadRequestException('Quiz has already been closed.');
+
+      // Doesnt permit closing quiz if not creator
+      if (quiz.createdBy.toString() !== userId)
+        throw new ForbiddenException('Not authorized.');
+
+      // Update quiz status
+      quiz.status = 'closed';
+      await quiz.save();
+
+      return sendResponse(HttpStatus.OK, 'Quiz closed successfully.');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // todo: will be worked on after working on participant and question models
+  async attemptQuiz(quizId: string, userId: string) {
+    return 'todo for now';
+  }
+
+  // todoL will be worked on after working on participant model
+  async getQuizParticipants(quizId: string, userId: string) {
+    return 'todo for now';
   }
 }
