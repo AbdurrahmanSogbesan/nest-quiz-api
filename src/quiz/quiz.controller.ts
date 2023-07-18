@@ -11,7 +11,7 @@ import {
 import { QuizService } from './quiz.service';
 import { JwtGuard } from 'src/auth/guard';
 import { GetUser } from 'src/auth/decorator';
-import { CreateQuizDto, UpdateQuizDto } from './dto';
+import { AttemptQuizDto, CreateQuizDto, UpdateQuizDto } from './dto';
 
 @UseGuards(JwtGuard)
 @Controller('quizzes')
@@ -62,15 +62,13 @@ export class QuizController {
   async attemptQuiz(
     @Param('quiz_id') quizId: string,
     @GetUser('id') userId: string,
+    @Body() dto: AttemptQuizDto,
   ) {
-    return this.quizService.attemptQuiz(quizId, userId);
+    return this.quizService.attemptQuiz(quizId, userId, dto);
   }
 
   @Get(':quiz_id/participants')
-  async getQuizParticipants(
-    @Param('quiz_id') quizId: string,
-    @GetUser('id') userId: string,
-  ) {
-    return this.quizService.getQuizParticipants(quizId, userId);
+  async getQuizParticipants(@Param('quiz_id') quizId: string) {
+    return this.quizService.getQuizParticipants(quizId);
   }
 }

@@ -5,13 +5,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateQuizDto, UpdateQuizDto } from './dto';
+import { AttemptQuizDto, CreateQuizDto, UpdateQuizDto } from './dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Quiz } from './schema/quiz.model';
 import { Model, Types } from 'mongoose';
 import { User } from 'src/user/schema/user.model';
 import { sendResponse } from 'src/utils/send-response';
 import { Question } from 'src/question/schema/question.model';
+import { Participant } from 'src/participant/schema/participant.model';
 
 @Injectable()
 export class QuizService {
@@ -19,6 +20,7 @@ export class QuizService {
     @InjectModel(Quiz.name) private quizModel: Model<Quiz>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Question.name) private questionModel: Model<Question>,
+    @InjectModel(Participant.name) private participantModel: Model<Participant>,
   ) {}
 
   async createQuiz(userId: string, dto: CreateQuizDto) {
@@ -121,9 +123,19 @@ export class QuizService {
       // Remove quiz from db
       await this.quizModel.findByIdAndRemove(quizId);
 
-      // Find creator and update quizzes array
+      // todo: not so sure ab this and the pull on participatedIn below, but it seems to work
+      const quizParticipant = await this.participantModel.findOne({
+        quiz: Types.ObjectId.createFromHexString(quizId),
+      });
+
+      // Find creator and update quizzes and participant
       await this.userModel.findByIdAndUpdate(userId, {
-        $pull: { quizzes: quizId },
+        $pull: { quizzes: quizId, participatedIn: quizParticipant._id },
+      });
+
+      // Remove quiz participants
+      await this.participantModel.deleteMany({
+        quiz: Types.ObjectId.createFromHexString(quizId),
       });
 
       return sendResponse(HttpStatus.OK, 'Quiz deleted successfully.');
@@ -156,13 +168,111 @@ export class QuizService {
     }
   }
 
-  // todo: will be worked on after working on participant and question models
-  async attemptQuiz(quizId: string, userId: string) {
-    return 'todo for now';
+  async attemptQuiz(quizId: string, userId: string, dto: AttemptQuizDto) {
+    const { answers: userAnswers } = dto;
+    try {
+      // Find quiz
+      const quiz = await this.quizModel.findById(quizId);
+
+      // Check if its open
+      if (quiz.status !== 'open')
+        return sendResponse(HttpStatus.BAD_REQUEST, 'Quiz is currently closed');
+
+      // Find questions
+      const questions = await this.questionModel.find({
+        quiz: Types.ObjectId.createFromHexString(quizId),
+      });
+
+      // Check if quiz has at least 1 question
+      if (!questions.length)
+        return sendResponse(
+          HttpStatus.BAD_REQUEST,
+          'No questions found in quiz',
+        );
+
+      // Check if user has attempted it before
+      const existingParticipant = await this.participantModel.findOne({
+        quiz: Types.ObjectId.createFromHexString(quizId),
+        user: Types.ObjectId.createFromHexString(userId),
+      });
+
+      if (existingParticipant)
+        return sendResponse(
+          HttpStatus.BAD_REQUEST,
+          'User has already attempted the quiz.',
+        );
+
+      // Calculate total available scores
+      const totalMarks = questions.reduce(
+        (total, question) => total + question.marks,
+        0,
+      );
+
+      // Calculate score for user attempt
+      let score = 0;
+      for (let i = 0; i < questions.length; i++) {
+        const question = questions[i];
+        const userAnswer = userAnswers[i] as string;
+
+        // Compare user answers to db answer and add to score
+        if (
+          question.options.includes(userAnswer) &&
+          question.answer == userAnswer
+        ) {
+          score += question.marks;
+        }
+      }
+
+      // Calculate the percentage score
+      const percentageScore = (score / totalMarks) * 100;
+
+      // create participation
+      const participant = new this.participantModel({
+        quiz: Types.ObjectId.createFromHexString(quizId),
+        user: Types.ObjectId.createFromHexString(userId),
+        score: percentageScore,
+      });
+
+      const result = await participant.save();
+
+      // add to participatedIn on user model
+      await this.userModel.findByIdAndUpdate(userId, {
+        $push: { participatedIn: result._id },
+      });
+
+      // add to participants in quiz model
+      await this.quizModel.findByIdAndUpdate(quizId, {
+        $push: { participants: result._id },
+      });
+
+      // return response
+      return sendResponse(HttpStatus.OK, 'Quiz attempted successfully', {
+        score: `${result.score}%`,
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 
-  // todoL will be worked on after working on participant model
-  async getQuizParticipants(quizId: string, userId: string) {
-    return 'todo for now';
+  async getQuizParticipants(quizId: string) {
+    try {
+      const participants = await this.participantModel
+        .find({
+          quiz: Types.ObjectId.createFromHexString(quizId),
+        })
+        .populate('user', '-password -quizzes -participatedIn');
+
+      // If the array is empty
+      if (!participants.length)
+        throw new NotFoundException('Quiz participants not found.');
+
+      return sendResponse(
+        HttpStatus.OK,
+        'Quiz participants fetched successfully',
+        participants,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 }
