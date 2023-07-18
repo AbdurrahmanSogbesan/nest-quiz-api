@@ -5,6 +5,7 @@ import { JwtGuard } from 'src/auth/guard';
 @UseGuards(JwtGuard)
 @Controller('user')
 export class UserController {
+  // todo: add update and delete user
   // test
   // @Get('me')
   // async getUser(@GetUser() user) {

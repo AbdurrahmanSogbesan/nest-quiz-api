@@ -282,4 +282,34 @@ export class QuizService {
       throw error;
     }
   }
+
+  async getLeaderboard(quizId: string) {
+    try {
+      const participants = await this.participantModel
+        .find({
+          quiz: Types.ObjectId.createFromHexString(quizId),
+        })
+        .populate('user', '-password -quizzes -participatedIn')
+        .sort({ score: -1 });
+
+      // If the array is empty
+      if (!participants.length)
+        throw new NotFoundException('No participants not found.');
+
+      const leaderboard = participants?.map((p, index) => ({
+        name: `${p.user?.firstname + ' ' + p.user?.lastname || 'None'}`,
+        score: `${p.score}%`,
+        rank: index + 1,
+        email: p.user.email,
+      }));
+
+      return sendResponse(
+        HttpStatus.OK,
+        'Leaderboard fetched successfully',
+        leaderboard,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
 }

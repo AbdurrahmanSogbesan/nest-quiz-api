@@ -71,4 +71,9 @@ export class QuizController {
   async getQuizParticipants(@Param('quiz_id') quizId: string) {
     return this.quizService.getQuizParticipants(quizId);
   }
+
+  @Get(':quiz_id/leaderboard')
+  async getLeaderboard(@Param('quiz_id') quizId: string) {
+    return this.quizService.getLeaderboard(quizId);
+  }
 }
