@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { Participant } from 'src/participant/schema/participant.model';
 import { Quiz } from 'src/quiz/schema/quiz.model';
 
 export type UserDocument = HydratedDocument<User>;
@@ -20,6 +21,9 @@ export class User {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Quiz' }] })
   quizzes: Quiz[];
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Participant' }] })
+  participatedIn: Participant[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
