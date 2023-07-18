@@ -10,14 +10,13 @@ export class UpdateQuestionDto {
   @IsArray()
   @IsNotEmpty()
   @IsOptional()
-  options?: string[];
+  options?: (number | string | boolean)[];
 
   @IsNotEmpty()
   @IsOptional()
   marks?: number;
 
-  @IsString()
   @IsNotEmpty()
   @IsOptional()
-  answer?: string;
+  answer?: number | string | boolean;
 }

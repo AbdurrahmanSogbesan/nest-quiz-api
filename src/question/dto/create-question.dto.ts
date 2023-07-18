@@ -11,9 +11,8 @@ export class CreateQuestionDto {
 
   @IsArray()
   @IsNotEmpty()
-  options: string[];
+  options: (number | string | boolean)[];
 
-  @IsString()
   @IsNotEmpty()
-  answer: string;
+  answer?: number | string | boolean;
 }
