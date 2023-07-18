@@ -8,7 +8,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { QuestionService } from './quesiton.service';
+import { QuestionService } from './question.service';
 import { JwtGuard } from 'src/auth/guard';
 import { CreateQuestionDto, UpdateQuestionDto } from './dto';
 import { GetUser } from 'src/auth/decorator';

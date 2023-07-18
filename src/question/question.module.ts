@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { QuestionService } from './quesiton.service';
+import { QuestionService } from './question.service';
 import { QuestionController } from './question.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Question, QuestionSchema } from './schema/question.model';
