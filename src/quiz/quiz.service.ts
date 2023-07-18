@@ -123,14 +123,21 @@ export class QuizService {
       // Remove quiz from db
       await this.quizModel.findByIdAndRemove(quizId);
 
-      // todo: not so sure ab this and the pull on participatedIn below, but it seems to work
-      const quizParticipant = await this.participantModel.findOne({
+      // Get quiz participants
+      const quizParticipants = await this.participantModel.find({
         quiz: Types.ObjectId.createFromHexString(quizId),
       });
 
-      // Find creator and update quizzes and participant
+      const participantIds = quizParticipants.map((p) => p._id);
+
+      // remove quiz from users participatedIn field
+      await this.userModel.updateMany(
+        { participatedIn: { $in: participantIds } },
+        { $pull: { participatedIn: { $in: participantIds } } },
+      );
+      // Find creator and update quizzes
       await this.userModel.findByIdAndUpdate(userId, {
-        $pull: { quizzes: quizId, participatedIn: quizParticipant._id },
+        $pull: { quizzes: quizId },
       });
 
       // Remove quiz participants
