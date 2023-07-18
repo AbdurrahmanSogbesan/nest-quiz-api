@@ -16,10 +16,10 @@ export class Question {
   marks: number;
 
   @Prop({ required: true })
-  options: string[];
+  options: any[];
 
-  @Prop({ required: true })
-  answer: string;
+  @Prop({ required: true, type: {} })
+  answer: number | string | boolean;
 }
 
 export const QuestionSchema = SchemaFactory.createForClass(Question);
