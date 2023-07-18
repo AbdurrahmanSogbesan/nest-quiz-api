@@ -7,6 +7,7 @@ import { UserController } from './user/user.controller';
 import { QuizModule } from './quiz/quiz.module';
 import { UserModule } from './user/user.module';
 import { QuestionModule } from './question/question.module';
+import { ParticipantModule } from './participant/participant.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { QuestionModule } from './question/question.module';
     AuthModule,
     QuizModule,
     QuestionModule,
+    ParticipantModule,
   ],
   controllers: [UserController],
   providers: [],
